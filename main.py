@@ -149,7 +149,7 @@ def check_system (disk_threshold, cpu_threshold, ram_threshold, token, chat_id):
             
 def main():
     parser = argparse.ArgumentParser(description="System monitoring")
-    parser.add_argument ('--interval', type=int, default=60, help='Check interval in seconds')
+    parser.add_argument ('--interval', type=int, default=1, help='Check interval in seconds')
     parser.add_argument ('--disk-threshold', type=int, default=90, help='Disk usage alert threshold (%)')
     parser.add_argument ('--cpu-threshold', type=int, default=90, help='CPU usage alert threshold (%)')
     parser.add_argument ('--ram-threshold', type=int, default=80, help='RAM usage alert threshold (%)')
@@ -171,7 +171,7 @@ def main():
             )
 
             
-            time.sleep(1) #args.interval
+            time.sleep(args.interval)
     except KeyboardInterrupt:
         print("\nStopping sysmon...")
         logging.info ("sysmon stopped")
