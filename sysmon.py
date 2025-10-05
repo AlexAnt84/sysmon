@@ -81,8 +81,10 @@ def check_system (disk_threshold, cpu_threshold, ram_threshold, token, chat_id):
         if len(disk_history) > 100:
             disk_history.pop(0)
         
-                
-        os.system('cls') # clear для linux
+        if sys.platform == "win32":
+            os.system('cls')
+        else:
+            os.system('clear')  # clear для linux
             
         plt.clear_data()
         
