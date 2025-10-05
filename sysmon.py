@@ -178,9 +178,5 @@ def main():
         print("\nStopping sysmon...")
         logging.info ("sysmon stopped")
         sys.exit(0)
-    
-if __name__ == "__main__":  
-    
-    main()
         
         
