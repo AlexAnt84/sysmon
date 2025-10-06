@@ -96,7 +96,7 @@ def check_system (disk_threshold, cpu_threshold, ram_threshold, token, chat_id):
         plt.title("System Load")
         #plt.grid(True)
         plt.show()        
-    draw_plot(cpu_percent, ram_percent, disk_percent)
+    draw_plot(disk_percent, cpu_percent, ram_percent)
     
     
     # Отсылаем алерты в TG, если > threshold
