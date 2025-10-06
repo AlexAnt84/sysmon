@@ -16,13 +16,14 @@ logging.basicConfig(
 
     
 ########################
-# Переменные для идемподентности алертов
+# Переменные для идемпотентности алертов
 ########################
 
 
 is_alert_disk_active = False
-is_alert_ram_active = False
 is_alert_cpu_active = False
+is_alert_ram_active = False
+
 
 disk_history = []
 cpu_history = []
