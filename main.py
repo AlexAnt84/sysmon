@@ -8,14 +8,18 @@ class MetricsCollector:
         self.history = {
             'disk': [],
             'cpu': [],
-            'ram': []
+            'ram': [],
+            'disk_io_read_time': [],
+            'disk_io_write_time': []
         }
     
     def collect(self ):
         metrics = {
             'disk': psutil.disk_usage('/').percent,
             'cpu': psutil.cpu_percent(interval=1),
-            'ram': psutil.virtual_memory().percent
+            'ram': psutil.virtual_memory().percent,
+            'disk_io_read_time': psutil.disk_io_counters().read_time,
+            'disk_io_write_time': psutil.disk_io_counters().write_time
         }
         
         #Обновляем историю
@@ -28,23 +32,30 @@ class MetricsCollector:
     
 #Управление алертами
 class AlertManager:
-    def __init__(self, disk_threshold=80, cpu_threshold=80, ram_threshold=80):
+    def __init__(self, disk_threshold=80, cpu_threshold=80, ram_threshold=80, disk_io_write_threshold=20, disk_io_read_threshold=20):
 
         self.disk_threshold = disk_threshold
         self.cpu_threshold = cpu_threshold
         self.ram_threshold = ram_threshold
+        self.disk_io_read_threshold = disk_io_read_threshold
+        self.disk_io_write_threshold = disk_io_write_threshold
         
         self.thresholds = {
             'disk': self.disk_threshold,
             'cpu': self.cpu_threshold,
-            'ram': self.ram_threshold
+            'ram': self.ram_threshold,
+            'disk_io_read_time': self.disk_io_read_threshold,
+            'disk_io_write_time': self.disk_io_write_threshold
         }
         
             
         self.is_active_flags = {
             'disk' : False,
             'cpu' : False,
-            'ram' : False
+            'ram' : False,
+            'disk_io_read_time': False,
+            'disk_io_write_time': False
+            
         }  
     
     def process_alerts(self, metrics , hysteresis = 5 ):
@@ -54,7 +65,7 @@ class AlertManager:
         for key, value in metrics.items():
             
             if value > self.thresholds[key] and not self.is_active_flags[key]:
-                msg = f"⚠️ {key} usage high: {value:.1f}%"
+                msg = f"⚠️ {key} is high: {value:.1f}%"
                 self.is_active_flags[key] = True
                 alerts.append(msg)
 
@@ -150,7 +161,7 @@ def run_api ():
                 return jsonify(collector.history)
 
     
-    app.run(host='127.0.0.1', port=5000, debug=True)    
+    app.run(host='0.0.0.0', port=5000, debug=True)    
     
     
         
