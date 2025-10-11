@@ -10,8 +10,6 @@ class MetricsCollector:
             'cpu': [],
             'ram': []
         }
-
-        
     
     def collect(self ):
         metrics = {
@@ -28,6 +26,7 @@ class MetricsCollector:
         
         return metrics
     
+#Управление алертами
 class AlertManager:
     def __init__(self, disk_threshold=80, cpu_threshold=80, ram_threshold=80):
 
@@ -58,7 +57,7 @@ class AlertManager:
                 msg = f"⚠️ {key} usage high: {value:.1f}%"
                 self.is_active_flags[key] = True
                 alerts.append(msg)
-            #disk_percent  <= self.disk_threshold - hysteresis and self.is_disk_alert_active:    
+
             elif value <= self.thresholds[key] - hysteresis and self.is_active_flags[key]:
                 msg = f"✅ {key} alert resolved. Current value: {value:.1f}"
                 self.is_active_flags[key] = False
@@ -106,8 +105,61 @@ class TerminalRenderer:
         return "\n".join(lines)
         
 
+def run_api ():
+    from flask import Flask, jsonify
+    import threading
+    
+    collector = MetricsCollector(history_len=10)
+    alertmanager = AlertManager()
+    
+    current_metrics = {}
+    metrics_lock = threading.Lock()
+    
+    def background_collector():
+        nonlocal current_metrics
+        while True:
+            metrics = collector.collect()
+            with metrics_lock:
+                current_metrics = metrics
+            time.sleep(2)
+    
+    threading.Thread(target=background_collector, daemon=True).start()
+    
+    app = Flask("Sysmon")
+    
+    @app.route('/metrics')
+    def metrics():
+        with metrics_lock:
+            return jsonify(current_metrics)
+    
+    @app.route('/alerts')
+    def alerts():
+        with metrics_lock:
+            if not current_metrics:
+                return jsonify({"alerts": []})
+        return jsonify(alertmanager.process_alerts(current_metrics))
+    
+    @app.route('/healthcheck')
+    def healthcheck():
+        return jsonify({"status": "ok"})
+    
+    @app.route('/history')
+    def history():
+        with metrics_lock:
+            if collector.history != []:
+                return jsonify(collector.history)
+
+    
+    app.run(host='127.0.0.1', port=5000, debug=True)    
+    
+    
         
-def main():
+    
+    
+
+
+        
+def run_terminal():
     collector = MetricsCollector(history_len=5)
     
     alert_manager = AlertManager(
@@ -121,26 +173,17 @@ def main():
     try:
         while True:
             metrics = collector.collect()
-            # alerts = alert_manager.process_alerts(
-            #     metrics['disk'],
-            #     metrics['cpu'],
-            #     metrics['ram']
-            # )
-            
-            alerts = alert_manager.process_alerts(metrics)
-            
-            
-            
-            # if alerts:
-            #     for alert in alerts: 
-            #         print(alert)    
-                    
+
             print(renderer.render(metrics))       
             time.sleep(2)
             print("\033[2J\033[H", end="")
             
     except KeyboardInterrupt:
         print("\n Stopping sysmon...")
+
+
+def main():
+    run_api()
 
 
 
