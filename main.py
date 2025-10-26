@@ -1,5 +1,6 @@
 import psutil
 import time
+import argparse
 
 #Собирает метрики, ведет историю
 class MetricsCollector:
@@ -112,6 +113,9 @@ class TerminalRenderer:
         lines.append(self.render_bar("Disk", metrics['disk']))
         lines.append(self.render_bar("CPU", metrics['cpu']))
         lines.append(self.render_bar("RAM", metrics['ram']))
+        #TODO
+#       lines.append(self.render_bar("DISK IO READ", metrics['disk_io_read_time'])) 
+ #       lines.append(self.render_bar("DISK IO WRITE", metrics['disk_io_write_time']))
         lines.append("=" * (self.width + 15))
         return "\n".join(lines)
         
@@ -161,7 +165,7 @@ def run_api ():
                 return jsonify(collector.history)
 
     
-    app.run(host='0.0.0.0', port=5000, debug=True)    
+    app.run(host='0.0.0.0', port=80, debug=False)    
     
     
         
@@ -194,7 +198,19 @@ def run_terminal():
 
 
 def main():
-    run_api()
+    parser = argparse.ArgumentParser(description="System Monitor")
+    parser.add_argument("--cli", help="Консольный режим", action="store_true")
+    parser.add_argument("--web", help="Режим веб-сервера. Порт по умолчанию - 80", action="store_true")
+    
+    args = parser.parse_args()
+    
+    if args.cli:
+        run_terminal()
+    elif args.web:
+        run_api()
+    else:
+        print("Неверный режим. Используйте --help")
+    
 
 
 
